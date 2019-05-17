@@ -1,0 +1,52 @@
+version: '3'
+services:
+  elastic_1:
+    image: elasticsearch:1.7.6
+    ports:
+      - "9200:9200"
+    networks: 
+      - es_sub
+    volumes:
+      - type: volume
+        source: es_data_1
+        target: /es
+      - type: bind
+        source: /home/sagemod/docker_compose/elasticsearch.yml
+        target: /usr/share/elasticsearch/config/elasticsearch.yml
+
+  elastic_2:
+    image: elasticsearch:1.7.6
+    ports:
+      - "9200:9201"
+    networks: 
+      - es_sub
+    volumes:
+      - type: volume
+        source: es_data_2
+        target: /es
+      - type: bind
+        source: /home/sagemod/docker_compose/elasticsearch.yml
+        target: /usr/share/elasticsearch/config/elasticsearch.yml
+
+  elastic_3:
+    image: elasticsearch:1.7.6
+    ports:
+      - "9200:9202"
+    networks: 
+      - es_sub
+    volumes:
+      - type: volume
+        source: es_data_3
+        target: /es
+      - type: bind
+        source: /home/sagemod/docker_compose/elasticsearch.yml
+        target: /usr/share/elasticsearch/config/elasticsearch.yml
+
+networks:
+  es_sub:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+      - 
+        subnet: 10.14.14.0/24

@@ -1,0 +1,3 @@
+cluster.name: General Cluster
+node.name: ${HOSTNAME}
+path.data: /es
