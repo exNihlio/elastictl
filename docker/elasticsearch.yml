@@ -1,3 +1,5 @@
 cluster.name: General Cluster
 node.name: ${HOSTNAME}
-path.data: /es
+#path.data: /es
+cluster.intial_master_nodes:
+  - 

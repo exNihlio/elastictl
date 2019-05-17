@@ -1,46 +1,53 @@
-version: '3'
+version: '3.7'
 services:
   elastic_1:
     image: elasticsearch:1.7.6
     ports:
       - "9200:9200"
     networks: 
-      - es_sub
+      es_sub:
+        ipv4_address: 10.14.14.2
     volumes:
       - type: volume
         source: es_data_1
-        target: /es
+        target: /var/lib/elasticsearch
       - type: bind
-        source: /home/sagemod/docker_compose/elasticsearch.yml
+        source: ./elasticsearch.yml
         target: /usr/share/elasticsearch/config/elasticsearch.yml
 
   elastic_2:
     image: elasticsearch:1.7.6
     ports:
-      - "9200:9201"
+      - "9201:9200"
     networks: 
-      - es_sub
+      es_sub:
+        ipv4_address: 10.14.14.3
     volumes:
       - type: volume
         source: es_data_2
-        target: /es
+        target: /var/lib/elasticsearch
       - type: bind
-        source: /home/sagemod/docker_compose/elasticsearch.yml
+        source: ./elasticsearch.yml
         target: /usr/share/elasticsearch/config/elasticsearch.yml
 
   elastic_3:
     image: elasticsearch:1.7.6
     ports:
-      - "9200:9202"
+      - "9202:9200"
     networks: 
-      - es_sub
+      es_sub:
+        ipv4_address: 10.14.14.4
     volumes:
       - type: volume
         source: es_data_3
-        target: /es
+        target: /var/lib/elasticsearch
       - type: bind
-        source: /home/sagemod/docker_compose/elasticsearch.yml
+        source: ./elasticsearch.yml
         target: /usr/share/elasticsearch/config/elasticsearch.yml
+volumes:
+  es_data_1:
+  es_data_2:
+  es_data_3:
 
 networks:
   es_sub:
