@@ -27,41 +27,48 @@ from valp import *
 
 
 def main():
-    argdict = {}
     # Start the argument parser
     parser = argparse.ArgumentParser()
     # Set the cluster endpoint i.e. localhost
     parser.add_argument("--addr", help="The address of the Elasticsearch \
                         host. Defaults to '127.0.0.1'. Currently only supports \
-                        IP addresses", action="store_true")
+                        IP addresses")
     # Test the cluster endpoint, check if we can hit the specified port
     parser.add_argument("--test", help="Checks if the given URL and port can \
-                        be reached and outputs some helpful data" )
+                        be reached and outputs some helpful data", 
+                        action="store_true" )
     # Set the es port we will be using, default of 9200
-    parser.add_argument("--port", help="The HTTP port of the \
-                         Elasticsearch host. Defaults to 9200", \
-                        action="store_true")
+    parser.add_argument("--port", type=int, help="The HTTP port of the \
+                         Elasticsearch host. Defaults to 9200")
     
     args = parser.parse_args()
 
-    if args.test:
-        argdict['test'] = True
-    else: 
-        argdict['test'] = False
+    argDict = buildArgDict(args)
 
-    if args.addr:
-        argdict['addr'] = args.addr
-    else:
-        argdict['addr'] = "127.0.0.1"
-
-    if args.port:
-        argdict['port'] = args.port
-    else:
-        argdict['port'] = 9200
-
-    endpoint = endPointConstructor(argdict)
+    endpoint = endPointConstructor(argDict)
 
     print(endpoint)
+
+def buildArgDict(argObj):
+
+    locDict = {}
+
+    if argObj.test:
+        locDict['test'] = True
+    else: 
+        locDict['test'] = False
+
+    if argObj.addr:
+        locDict['addr'] = argObj.addr
+    else:
+        locDict['addr'] = "127.0.0.1"
+
+    if argObj.port:
+        locDict['port'] = argObj.port
+    else:
+        locDict['port'] = 9200
+
+    return locDict
 
 # Construct the endpoint and parameters we want to hit
 def endPointConstructor(argdict):
@@ -90,9 +97,9 @@ def endPointConstructor(argdict):
         # conflicts with other ports.
         print("Warning: 'port' uses a well-known port")
         print("Your Elasticsearch node may conflict with other services")
-        baseEndpoint = baseEndpoint + str(argdict['port'])
+        baseEndpoint = baseEndpoint + ":" + str(argdict['port'])
     else:
-        baseEndpoint = baseEndpoint + str(argdict['port'])
+        baseEndpoint = baseEndpoint + ":" + str(argdict['port'])
 
     endpoint = baseEndpoint
 
