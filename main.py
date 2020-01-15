@@ -31,7 +31,8 @@ def main():
     parser = argparse.ArgumentParser()
     # Set the cluster endpoint i.e. localhost
     parser.add_argument("--addr", type=str, default="127.0.0.1",
-                        help="The address of the Elasticsearch host. Defaults to '127.0.0.1'. Currently only supports\
+                        help="The address of the Elasticsearch host. Defaults to\
+                        '127.0.0.1'. Currently only supports\
                         IP addresses")
     # Choose a protocol
     parser.add_argument("--protocol", type=str, default="http",
