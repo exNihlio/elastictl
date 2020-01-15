@@ -1,7 +1,7 @@
 version: '3.7'
 services:
   elastic_1:
-    image: elasticsearch:1.7.6
+    image: elasticsearch:7.2.1
     ports:
       - "9200:9200"
     networks: 
@@ -10,13 +10,22 @@ services:
     volumes:
       - type: volume
         source: es_data_1
-        target: /var/lib/elasticsearch
-      - type: bind
-        source: ./elasticsearch.yml
-        target: /usr/share/elasticsearch/config/elasticsearch.yml
+        target: /usr/share/elasticsearch/data
+    environment:
+      - node.name=es1
+      - cluster.name=general-cluster
+      - path.data=/usr/share/elasticsearch/data
+      - ES_JAVA_OPTS=-Xms1G -Xmx1G
+      - bootstrap.memory_lock=true
+      - discovery.seed_hosts=10.14.14.3,10.14.14.4
+      - cluster.initial_master_nodes=10.14.14.2,10.14.14.3,10.14.14.4
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
 
   elastic_2:
-    image: elasticsearch:1.7.6
+    image: elasticsearch:7.2.1
     ports:
       - "9201:9200"
     networks: 
@@ -25,13 +34,22 @@ services:
     volumes:
       - type: volume
         source: es_data_2
-        target: /var/lib/elasticsearch
-      - type: bind
-        source: ./elasticsearch.yml
-        target: /usr/share/elasticsearch/config/elasticsearch.yml
+        target: /usr/share/elasticsearch/data
+    environment:
+      - node.name=es2
+      - cluster.name=general-cluster
+      - path.data=/usr/share/elasticsearch/data
+      - ES_JAVA_OPTS=-Xms1G -Xmx1G
+      - bootstrap.memory_lock=true
+      - discovery.seed_hosts=10.14.14.2,10.14.14.4
+      - cluster.initial_master_nodes=10.14.14.2,10.14.14.3,10.14.14.4
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
 
   elastic_3:
-    image: elasticsearch:1.7.6
+    image: elasticsearch:7.2.1
     ports:
       - "9202:9200"
     networks: 
@@ -40,10 +58,19 @@ services:
     volumes:
       - type: volume
         source: es_data_3
-        target: /var/lib/elasticsearch
-      - type: bind
-        source: ./elasticsearch.yml
-        target: /usr/share/elasticsearch/config/elasticsearch.yml
+        target: /usr/share/elasticsearch/data
+    environment:
+      - node.name=es3
+      - cluster.name=general-cluster
+      - path.data=/usr/share/elasticsearch/data
+      - ES_JAVA_OPTS=-Xms1G -Xmx1G
+      - bootstrap.memory_lock=true
+      - discovery.seed_hosts=10.14.14.2,10.14.14.3
+      - cluster.initial_master_nodes=10.14.14.2,10.14.14.3,10.14.14.4
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
 volumes:
   es_data_1:
   es_data_2:
