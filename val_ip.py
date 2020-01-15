@@ -4,7 +4,7 @@ except ImportError:
     print("elastictl requires 'ipaddress'")
     print("Please run 'pip3 install ipaddress' before proceeding")
 
-def validateIPv4(input):
+def validate_ipv4(input):
     try:
          ipaddress.IPv4Address(input)
     except AddressValueError:

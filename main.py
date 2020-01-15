@@ -23,98 +23,54 @@ except ImportError:
 
 # Script specific utilities
 # valp has the validate functions
-from valp import *
+from val_ip import validate_ipv4
 
 
 def main():
     # Start the argument parser
     parser = argparse.ArgumentParser()
     # Set the cluster endpoint i.e. localhost
-    parser.add_argument("--addr", help="The address of the Elasticsearch \
-                        host. Defaults to '127.0.0.1'. Currently only supports \
+    parser.add_argument("--addr", type=str, default="127.0.0.1",
+                        help="The address of the Elasticsearch host. Defaults to '127.0.0.1'. Currently only supports\
                         IP addresses")
+    # Choose a protocol
+    parser.add_argument("--protocol", type=str, default="http",
+                        help="Protocol to use, either http or https. Defaults to http")
+
     # Test the cluster endpoint, check if we can hit the specified port
     parser.add_argument("--test", help="Checks if the given URL and port can \
                         be reached and outputs some helpful data", 
                         action="store_true" )
     # Set the es port we will be using, default of 9200
-    parser.add_argument("--port", type=int, help="The HTTP port of the \
+    parser.add_argument("--port", type=int, default=9200, help="The HTTP port of the\
                          Elasticsearch host. Defaults to 9200")
     
     args = parser.parse_args()
+    f = EndPointConstructor(args)
+    print(f)
+# Construct a valid endpoint here, either composed of an
+# IP address with an appropriate protocol and
+# port utilized.
 
-    argDict = buildArgDict(args)
+class EndPointConstructor():
+    def __init__(self, args):
+        self.protocol = args.protocol
+        self.addr = args.addr
+        self.port = args.port
 
-    endpoint = endPointConstructor(argDict)
-
-    print(endpoint)
-
-def buildArgDict(argObj):
-
-    locDict = {}
-
-    if argObj.test:
-        locDict['test'] = True
-    else: 
-        locDict['test'] = False
-
-    if argObj.addr:
-        locDict['addr'] = argObj.addr
-    else:
-        locDict['addr'] = "127.0.0.1"
-
-    if argObj.port:
-        locDict['port'] = argObj.port
-    else:
-        locDict['port'] = 9200
-
-    return locDict
-
-# Construct the endpoint and parameters we want to hit
-def endPointConstructor(argdict):
-    # Currently Elasticsearch only supports API calls 
-    # over http.
-    baseProto = "http://"
-    try:
-        argdict['port']
-    except TypeError:
-        print("Something went wrong. The parameters were incorrectly formatted")
-        sys.exit(1)
-
-    validIP = validateIPv4(argdict['addr'])
-
-    if validIP == True:
-        baseEndpoint = baseProto + argdict['addr']
-    else:
-        print("Possible improperly formatted IP address")
-        print("Exiting")
-        sys.exit(1)
-    
-    if argdict['port'] == 9200:
-        baseEndpoint = baseEndpoint + ":" + str(argdict['port'])
-    elif argdict['port'] <= 1024: 
-        # Log warning the Elasticsearch port we're connecting to 
-        # conflicts with other ports.
-        print("Warning: 'port' uses a well-known port")
-        print("Your Elasticsearch node may conflict with other services")
-        baseEndpoint = baseEndpoint + ":" + str(argdict['port'])
-    else:
-        baseEndpoint = baseEndpoint + ":" + str(argdict['port'])
-
-    endpoint = baseEndpoint
-
-    return endpoint
+    def __repr__(self):
+        return f"{self.protocol}://{self.addr}:{self.port}"
 
 # Map all possible cluster settings and parameters here
-class clusterStatus():
+class ClusterStatus():
     # Get the current cluster master
-    def clusterMaster(self, endpoint):
+    def cluster_settings(self, endpoint):
         pass
 
 # Check the status of your indices here
-class indexStatus():
+class IndexStatus():
     # Return a list of all indices
-    def indexList(self, endpoint):
+    def index_list(self, endpoint):
         pass
     
 if __name__ == '__main__':
