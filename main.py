@@ -98,7 +98,7 @@ class EndpointValues():
             elif self.verbose == False:
                 # We just want to know if the cluster is working.
                 es_json = json.loads(es_status.text)
-                return f"Elasticsearch is up! Node: { eses__json['name'] }"
+                return f"Elasticsearch is up! Node: { es_json['name'] }"
 
 if __name__ == '__main__':
     main()
