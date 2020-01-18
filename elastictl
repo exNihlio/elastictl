@@ -24,49 +24,26 @@ except ModuleNotFoundError:
 # Script specific utilities
 # valp has the validate functions
 from val_ip import validate_ipv4
-
+# argument parser is generated here
+from cli import parser
 
 def main():
-    # Start the argument parser
-    parser = argparse.ArgumentParser()
-    # Set the cluster endpoint i.e. localhost
-    parser.add_argument("--addr", type=str, default="127.0.0.1",
-                        help="The address of the Elasticsearch host. Defaults to\
-                        '127.0.0.1'. Currently only supports\
-                        IP addresses")
-    # Choose a protocol
-    parser.add_argument("--protocol", type=str, default="http",
-                        help="Protocol to use, either http or https. Defaults to http")
-
-    # Test the cluster endpoint, check if we can hit the specified port
-    parser.add_argument("--test", help="Checks if the given URL and port can \
-                        be reached and outputs some helpful data", 
-                        action="store_true" )
-    # Set the es port we will be using, default of 9200
-    parser.add_argument("--port", type=int, default=9200, help="The HTTP port of the\
-                         Elasticsearch host. Defaults to 9200")
-
-    parser.add_argument("--verbose", help="Enable verbose output of data",
-                        action="store_true")
-
     # Build out args object
-    args = parser.parse_args()
+    args = parser()
     # Are we verbose
-    if args.verbose:
-      verbose = args.verbose
-    else:
-      verbose = False
-
+    verbose = args.verbose
     # Construct out baseurl from the BaseURL class.
     baseurl = BaseURL(args)
-
+    # Get our color object 
+    colors = TextColors()
     # Default action here: simply see if we hit an ES endpoint
     if args.test:
         pass
     else:
-      status = EndpointValues(baseurl, verbose).node_status()
+      status = EndpointValues(baseurl, verbose, colors).node_status()
       print(status)
 
+# Return a URL object
 class BaseURL():
     def __init__(self, args):
         self.protocol = args.protocol
@@ -76,21 +53,25 @@ class BaseURL():
     def __repr__(self):
         return f"{self.protocol}://{self.addr}:{self.port}"
 
+# Initial entry in to access various endpoints
 class EndpointValues():
-    def __init__(self, baseurl, verbose):
+    def __init__(self, baseurl, verbose, colors):
         self.url = baseurl.baseurl
         self.verbose = verbose
+        self.colors = colors
     def cluster_settings(self):
         pass
-
     # Return a list of all indices
     def index_list(self):
         pass
-
     def node_status(self):
-        es_status = httpx.get(self.url)
+        try:
+            es_status = httpx.get(self.url)
+        except:
+            return (f"{self.colors.FAIL}Error: Unable to connect. Is Elasticsearch running?{self.colors.ENDC}")
+
         if es_status.status_code != 200:
-            return f"Error: Recieved: { es_status.status_code }"
+            return f"{self.colors.FAIL}Error: Recieved: {es_status.status_code}{self.colors.ENDC}"
         else:
             if self.verbose == True:
                 # Get the full data from the endpoint
@@ -98,7 +79,18 @@ class EndpointValues():
             elif self.verbose == False:
                 # We just want to know if the cluster is working.
                 es_json = json.loads(es_status.text)
-                return f"Elasticsearch is up! Node: { es_json['name'] }"
+                return f"{self.colors.OKGREEN}Elasticsearch is up! Node: {es_json['name']}{self.colors.ENDC}"
+
+class TextColors():
+    def __init__(self):
+        self.HEADER = '\033[95m'
+        self.OKBLUE = '\033[94m'
+        self.OKGREEN = '\033[92m'
+        self.WARN = '\033[93m'
+        self.FAIL = '\033[91m'
+        self.ENDC = '\033[0m'
+        self.BOLD = '\033[1m'
+        self.UNDERLINE = '\033[4m'
 
 if __name__ == '__main__':
     main()
