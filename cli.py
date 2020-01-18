@@ -19,7 +19,7 @@ def parser():
     parser.add_argument("--verbose", help="Enable verbose output of data",
                         action="store_true")
 
-    subparsers = parser.add_subparsers(help="sub-commands")
+    subparsers = parser.add_subparsers(help="REST API equivalent sub-commands")
     # Create the parser for index related functions
     index_parser = subparsers.add_parser("index", help="Index related functions")
     index_parser.add_argument("--name", type=str, help="Name of the index", required=True)
