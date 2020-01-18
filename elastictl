@@ -37,9 +37,9 @@ def main():
     # Get our color object 
     colors = TextColors()
     # Default action here: simply see if we hit an ES endpoint
-    if args.test:
-        pass
-    else:
+    try:
+        args.test
+    except:
       status = EndpointValues(baseurl, verbose, colors).node_status()
       print(status)
 
