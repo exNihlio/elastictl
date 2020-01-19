@@ -3,10 +3,8 @@
 # We try to stay as close to standard library as possible.
 import sys
 import json
-import os
 
 # Do we have the things we need?
-
 try:
     import argparse
 except ModuleNotFoundError:
@@ -37,11 +35,25 @@ def main():
     # Get our color object 
     colors = TextColors()
     # Default action here: simply see if we hit an ES endpoint
-    try:
-        args.test
-    except:
-      status = EndpointValues(baseurl, verbose, colors).node_status()
-      print(status)
+
+    if args.test == True:
+        status = EndpointValues(baseurl, verbose, colors).es_up()
+        print(status)
+    if args.which == "index":
+        if args.exists:
+            exists_status = EndpointValues(baseurl, verbose, colors).index_exists(args)
+            print(exists_status["message"])
+            sys.exit(exists_status["exit"])
+        elif args.get:
+            pass
+        elif args.delete:
+            pass
+        elif args.create:
+            pass
+    if args.which == "node":
+        pass
+    if args.which == "cluster":
+        pass
 
 # Return a URL object
 class BaseURL():
@@ -59,12 +71,37 @@ class EndpointValues():
         self.url = baseurl.baseurl
         self.verbose = verbose
         self.colors = colors
-    def cluster_settings(self):
+    def cluster(self):
         pass
-    # Return a list of all indices
-    def index_list(self):
-        pass
-    def node_status(self):
+    # Index related options here.
+    def index_exists(self, args):
+        try:
+            es_status = httpx.get(self.url)
+        except:
+            return f"{self.colors.FAIL}Error: Unable to connect. Is Elasticsearch running?{self.colors.ENDC}"
+        # format our URL
+        index_url = f"{self.url}/{ args.name }"
+        # Check what our URL request gets
+        index_status = httpx.get(index_url)
+        # Does the index exist?
+        if index_status.status_code == 404:
+            message = f"{self.colors.WARN}Error: Index: {args.name} was not found{self.colors.ENDC}"
+            status_message =  {"message": message,
+                               "exit": 1}
+            return status_message
+        elif index_status.status_code == 200:
+            message = f"{self.colors.OKGREEN}Index: {args.name} exists{self.colors.ENDC}"
+            status_message = {"message": message,
+                              "exit": 0}
+            return status_message
+        else:
+            message = f"{self.colors.WARN}Error: {index_status.status_code} was received{self.colors.ENDC}"
+            status_message = {"message": message,
+                              "exit": 1}
+            return status_message
+
+    # Simply checks if elasticsearch is running
+    def es_up(self):
         try:
             es_status = httpx.get(self.url)
         except:
