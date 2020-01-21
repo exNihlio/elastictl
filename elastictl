@@ -38,21 +38,38 @@ def main():
 
     if args.test == True:
         status = EndpointValues(baseurl, verbose, colors).es_up()
-        print(status)
-    if args.which == "index":
-        if args.exists:
+        print(status['message'])
+        sys.exit(status['exit'])
+    try:
+        args.which == "index"
+        if args.exists == True:
             exists_status = EndpointValues(baseurl, verbose, colors).index_exists(args)
-            print(exists_status["message"])
-            sys.exit(exists_status["exit"])
-        elif args.get:
+            print(exists_status['message'])
+            sys.exit(exists_status['exit'])
+        elif args.get == True:
+            print("Passing here")
             pass
-        elif args.delete:
-            pass
-        elif args.create:
-            pass
-    if args.which == "node":
+        elif args.delete == True:
+            print("Deleting index")
+            delete_status = EndpointValues(baseurl, verbose, colors).index_delete(args)
+            print(delete_status['message'])
+            sys.exit(delete_status['exit'])
+        elif args.create == True:
+            create_status = EndpointValues(baseurl, verbose, colors).index_create(args)
+            print(create_status['message'])
+            sys.exit(create_status['exit'])
+        elif args.exists != True and args.get != True and args.delete != True and args.create != True:
+            print("elastictl index [--exists||--get||--delete||--create]")
+            sys.exit(0)
+    except:
         pass
-    if args.which == "cluster":
+    try:
+        args.which == "node"
+    except:
+        pass
+    try:
+        args.which == "cluster"
+    except:
         pass
 
 # Return a URL object
@@ -74,13 +91,73 @@ class EndpointValues():
     def cluster(self):
         pass
     # Index related options here.
-    def index_exists(self, args):
-        try:
-            es_status = httpx.get(self.url)
-        except:
-            return f"{self.colors.FAIL}Error: Unable to connect. Is Elasticsearch running?{self.colors.ENDC}"
+    def index_get(self, args):
+        pass
+    # Create an index if it does not exists
+    def index_create(self, args):
+        es_status = self._es_error()
+        if es_status['message'] != True:
+            return es_status
         # format our URL
-        index_url = f"{self.url}/{ args.name }"
+        index_url = f"{self.url}/{args.name}"
+        # Check what our URL request gets
+        index_status = httpx.get(index_url)
+        if index_status.status_code == 404:
+            index_status = httpx.put(index_url)
+            if index_status.status_code != 200:
+                message = f"{self.colors.WARN}Error: unable to create index{self.colors.ENDC}"
+                status_message = {"message": message,
+                                  "exit": 0}
+                return status_message
+            else:
+                message = f"{self.colors.OKGREEN}Index: {args.name} created{self.colors.ENDC}"
+                status_message = {"message": message,
+                                  "exit": 0}
+                return status_message
+        else:
+            message = f"{self.colors.OKGREEN}Index already exists{self.colors.ENDC}" 
+            status_message = {"message": message,
+                              "exit": 0}
+            return status_message
+    # Delete an index if it does not exist
+    def index_delete(self, args):
+        es_status = self._es_error()
+        if es_status['message'] != True:
+            return es_status
+        # format our URL
+        index_url = f"{self.url}/{args.name}"
+        # Check what our URL request gets
+        index_status = httpx.delete(index_url)
+        return index_status
+        if index_status.status_code == 404:
+            message = f"{self.colors.WARN} Error: {self.name} does not exist or was previously deleted{self.colors.ENDC}"
+            status_message = {"message": message,
+                              "exit": 1}
+            return status_message
+        elif index_status.status_code == 200:
+            index_status = httpx.delete(index_url)
+            if index_status.status_code != 200:
+                message = f"{self.colors.WARN} Error: Unable to delete {self.name}{self.colors.ENDC}"
+                status_message = {"message": message,
+                                  "exit": 1
+                                 }
+                return status_message
+            else:
+                message = f"{self.colors.OKGREEN} Deleted index: {self.name}{self.colors.ENDC}"
+                status_message = {"message": message,
+                                  "exit": 0}
+                return status_message
+        else:
+            message = "Unknown Error"
+            status_message = {"message": message,
+                              "exit": 1}
+    # Simply verify if an index is present
+    def index_exists(self, args):
+        es_status = self._es_error()
+        if es_status['message'] != True:
+            return es_status
+        # format our URL
+        index_url = f"{self.url}/{args.name}"
         # Check what our URL request gets
         index_status = httpx.get(index_url)
         # Does the index exist?
@@ -102,21 +179,38 @@ class EndpointValues():
 
     # Simply checks if elasticsearch is running
     def es_up(self):
-        try:
-            es_status = httpx.get(self.url)
-        except:
-            return (f"{self.colors.FAIL}Error: Unable to connect. Is Elasticsearch running?{self.colors.ENDC}")
-
-        if es_status.status_code != 200:
-            return f"{self.colors.FAIL}Error: Recieved: {es_status.status_code}{self.colors.ENDC}"
+        es_status = self._es_error()
+ 
+        if es_status['es_status'].status_code != 200:
+            message = f"{self.colors.FAIL}Error: Recieved: {es_status['es_status'].status_code}{self.colors.ENDC}"
+            return { "message": message,
+                     "exit": 1}
         else:
             if self.verbose == True:
                 # Get the full data from the endpoint
-                return es_status.text
+                message = es_status['es_status'].text
+                return { "message": message,
+                         "exit": 0}
             elif self.verbose == False:
                 # We just want to know if the cluster is working.
-                es_json = json.loads(es_status.text)
-                return f"{self.colors.OKGREEN}Elasticsearch is up! Node: {es_json['name']}{self.colors.ENDC}"
+                es_json = json.loads(es_status['es_status'].text)
+                message = f"{self.colors.OKGREEN}Elasticsearch is up! Node: {es_json['name']}{self.colors.ENDC}"
+                return {"message": message,
+                        "exit": 1 }
+
+    # Simple check function for ES validity
+    def _es_error(self):
+        try:
+            es_status = httpx.get(self.url)
+            return { "message": True,
+                     "es_status": es_status,
+                     "exit": 0}
+        except:
+            message = (f"{self.colors.FAIL}Error: Unable to connect. Is Elasticsearch running?{self.colors.ENDC}")
+            return { "message": message,
+                     "es_status": "",
+                     "exit": 1}
+        
 
 class TextColors():
     def __init__(self):
