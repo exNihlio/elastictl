@@ -1,3 +1,3 @@
 # elastictl
 
-## A basic, sane CLI for interacting with Elasticsearch
+A basic, sane CLI for interacting with Elasticsearch
