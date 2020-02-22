@@ -148,6 +148,7 @@ class EndpointValues():
             message = f"{self.colors.WARN}Unknown Error{self.colors.ENDC}"
             status_message = {"message": message,
                               "exit": 1}
+            return status_message
     # Simply verify if an index is present
     def index_exists(self, args):
         es_status = self._es_error()
