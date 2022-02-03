@@ -15,7 +15,7 @@ services:
       - node.name=es1
       - cluster.name=general-cluster
       - path.data=/usr/share/elasticsearch/data
-      - ES_JAVA_OPTS=-Xms256m -Xmx256m
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
       - bootstrap.memory_lock=true
       - discovery.seed_hosts=10.14.14.3,10.14.14.4
       - cluster.initial_master_nodes=10.14.14.2,10.14.14.3,10.14.14.4
